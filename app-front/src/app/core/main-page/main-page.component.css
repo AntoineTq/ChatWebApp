@@ -1,0 +1,39 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
+.page-content{
+  display: flex;
+  margin: 2em;
+  min-height: 0;
+  flex-direction: row;
+  height: 100%;
+}
+
+.discussions-list {
+  flex: 1;
+  background-color: #ffffff;
+  overflow-y: auto;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  max-width: 500px;
+}
+
+
+.discussion-content {
+  flex: 1;
+  background-color: #ffffff;
+  overflow-y: auto;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  margin-left: 20px;
+}
+
+.discussion-content p {
+  text-align: center;
+}
+
+
