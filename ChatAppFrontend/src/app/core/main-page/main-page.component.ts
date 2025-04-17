@@ -40,7 +40,7 @@ export class MainPageComponent {
   route: ActivatedRoute = inject(ActivatedRoute);
   isOpenedDiscussion = false;
 
-  constructor(private websocketService : WebsocketService) {
+  constructor() {
     this.route.paramMap.subscribe( params => {
       this.isOpenedDiscussion = params.has("id");
     });

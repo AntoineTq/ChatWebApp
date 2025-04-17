@@ -1,5 +1,6 @@
 package chatApp.service;
 
+import chatApp.dto.MessageContent;
 import chatApp.mapper.DiscussionMapper;
 import chatApp.dto.DiscussionDTO;
 import chatApp.model.Discussion;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 public class DiscussionService {
@@ -50,13 +52,11 @@ public class DiscussionService {
         discussionRepository.deleteById(discussionId);
     }
 
-    public MessageDTO sendMessage(MessageDTO messageDto) {
-        Discussion discussion = discussionRepository.findById(messageDto.getDiscussion()).orElseThrow();
-        Person sender = personRepository.findById(messageDto.getSenderId()).orElseThrow();
-        Message message = new Message(sender.getId(), LocalDateTime.now(), messageDto.getContent(), discussion);
-        messageRepository.save(message);
-
-        return MessageMapper.toDTO(message);
+    public MessageDTO sendMessage(MessageContent messageContent, Person sender) {
+        Discussion discussion = discussionRepository.findById(messageContent.getDiscussion()).orElseThrow();
+        Message newMessage = new Message(sender.getId(), LocalDateTime.now(), messageContent.getContent(), discussion);
+        messageRepository.save(newMessage);
+        return MessageMapper.toDTO(newMessage);
     }
 
     public List<DiscussionDTO> getDiscussionsByUserId(Long id) {
@@ -68,4 +68,8 @@ public class DiscussionService {
     }
 
 
+    public List<MessageDTO> getMessagesOfDiscussion(Long discussionId) {
+        List<Message> messages = messageRepository.findByDiscussionIdOrderByCreatedDateAsc(discussionId);
+        return messages.stream().map(MessageMapper::toDTO).toList();
+    }
 }

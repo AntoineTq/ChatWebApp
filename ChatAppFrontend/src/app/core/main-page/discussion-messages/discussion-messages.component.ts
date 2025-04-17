@@ -2,7 +2,6 @@ import {Component, ElementRef, inject, ViewChild} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {CommonModule} from "@angular/common";
 import {ActivatedRoute} from "@angular/router";
-import {toSignal} from "@angular/core/rxjs-interop";
 import {DiscussionService} from "../../services/discussion.service";
 import {Message} from "../../interfaces/message";
 import {Subscription} from "rxjs";
@@ -23,12 +22,12 @@ import {AuthService} from "../../services/auth.service";
         <p>Discussion {{ this.discussionId }}</p>
       </div>
       <div #messagesDiv class="messages">
-<!--        <div *ngFor="let message of messages"-->
-<!--             [class.sent]="message?.senderId === this.authService.getCurrentUser().id"-->
-<!--             [class.received]="!(message?.senderId === this.authService.getCurrentUser().id)"-->
-<!--             class="message">-->
-<!--          {{ message?.content }}-->
-<!--        </div>-->
+        <div *ngFor="let message of messages"
+             [class.sent]="message?.senderId === this.authService.userId"
+             [class.received]="!(message?.senderId === this.authService.userId)"
+             class="message">
+          {{ message?.content }}
+        </div>
       </div>
       <div class="input-area">
         <input type="text"
@@ -43,9 +42,9 @@ import {AuthService} from "../../services/auth.service";
 })
 export class DiscussionMessagesComponent {
 
-  websocketService : WebsocketService = inject(WebsocketService);
+  websocketService: WebsocketService = inject(WebsocketService);
   discussionService: DiscussionService = inject(DiscussionService);
-  authService : AuthService = inject(AuthService);
+  authService: AuthService = inject(AuthService);
   route: ActivatedRoute = inject(ActivatedRoute);
 
   newMessage: string = '';
@@ -55,12 +54,17 @@ export class DiscussionMessagesComponent {
   @ViewChild('messagesDiv') messagesDiv !: ElementRef<HTMLDivElement>;
 
   constructor() {
+    console.log(this.authService.userId)
     this.currentSub = this.route.params.subscribe(params => {
       this.discussionId = Number(params["id"]);
-      this.messages = this.discussionService.getMessagesByDiscussionId(this.discussionId);
+      this.discussionService.getMessagesByDiscussionId(this.discussionId)
+        .subscribe(messages => {
+          console.log(messages);
+          this.messages = messages;
+        });
     });
-
   }
+
 
   ngOnDestroy() {
     this.currentSub.unsubscribe();
@@ -76,10 +80,8 @@ export class DiscussionMessagesComponent {
       const message: Message = {
         content: this.newMessage,
         discussionId: this.discussionId,
-        // senderId: this.authService.getCurrentUser()!.id
       } as Message;
       this.websocketService.sendMessage(message);
-      this.messages?.push(message);
       this.newMessage = '';
     }
   }

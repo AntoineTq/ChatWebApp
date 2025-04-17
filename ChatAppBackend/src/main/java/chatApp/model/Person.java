@@ -79,4 +79,15 @@ public class Person {
         return discussions;
     }
 
+    @Override
+    public String toString() {
+        return "Person{" +
+                "id=" + id +
+                ", googleId='" + googleId + '\'' +
+                ", email='" + email + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", discussions=" + discussions +
+                '}';
+    }
 }

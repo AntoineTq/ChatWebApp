@@ -20,29 +20,11 @@ import {MyJwt} from "../interfaces/token";
 export class LoginComponent {
   authService = inject(AuthService);
 
-  constructor(private router: Router, private http: HttpClient) {
-    this.authService.currentUser.subscribe(user => {
-      if (user) {
-        console.log("User connected");
-        router.navigate(['/discussions'])
-        this.authenticateUser();
-      }
-    })
-
-  }
-
   login() {
     this.authService.login();
   }
 
 
-  authenticateUser() {
-    const token = this.authService.getJWT();
-    return this.http.post<MyJwt>('http://localhost:8080/auth/login',
-      {token}).subscribe(response => {
-      console.log(response);
-      sessionStorage.setItem("myJWT", response.token);
-    });
-  }
+
 
 }

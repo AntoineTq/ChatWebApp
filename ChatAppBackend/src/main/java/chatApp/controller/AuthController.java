@@ -1,6 +1,7 @@
 package chatApp.controller;
 
 
+import chatApp.dto.UserTokenDTO;
 import chatApp.service.JwtService;
 import chatApp.model.Person;
 import chatApp.repository.PersonRepository;
@@ -18,11 +19,7 @@ import java.util.Optional;
 @RequestMapping("/auth")
 public class AuthController {
 
-    public static class TokenRequest {
-        private String token;
-        public String getToken() { return token; }
-        public void setToken(String token) { this.token = token; }
-    }
+
     @Autowired
     private GoogleIdTokenVerifier googleIdTokenVerifier;
 
@@ -34,25 +31,27 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<TokenRequest> userLogin(@RequestBody TokenRequest tokenRequest) throws GeneralSecurityException, IOException {
-        GoogleIdToken googleIdToken = googleIdTokenVerifier.verify(tokenRequest.getToken());
+    public ResponseEntity<UserTokenDTO> userLogin(@RequestBody UserTokenDTO userTokenDTO) throws GeneralSecurityException, IOException {
+        GoogleIdToken googleIdToken = googleIdTokenVerifier.verify(userTokenDTO.getToken());
         GoogleIdToken.Payload googleUser = googleIdToken.getPayload();
 
 
         Optional<Person> existingUser = personRepository.findByEmail(googleUser.getEmail());
+        Person person;
         if (existingUser.isEmpty()) {
-            Person p = new Person(
+            person = new Person(
                     googleUser.getSubject(),
                     googleUser.get("given_name").toString(),
                     googleUser.get("family_name").toString(),
                     googleUser.getEmail()
             );
-            personRepository.save(p);
+            personRepository.save(person);
+        }else {
+            person = existingUser.get();
         }
 
         String token = jwtService.generateToken(googleUser.getEmail());
-        TokenRequest request = new TokenRequest();
-        request.setToken(token);
+        UserTokenDTO request = new UserTokenDTO(token, person.getId());
         return ResponseEntity.ok(request);
     }
 

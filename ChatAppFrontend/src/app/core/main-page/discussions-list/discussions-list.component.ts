@@ -16,18 +16,17 @@ import {filter, switchMap} from "rxjs";
     </div>
 
     <section>
-        <app-discussions-list-elem *ngFor="let discussion of discussionList" [discussion]="discussion"></app-discussions-list-elem>
+        <app-discussions-list-elem *ngFor="let discussion of discussionService.discussionList" [discussion]="discussion"></app-discussions-list-elem>
     </section>
 
   `,
   styleUrl: './discussions-list.component.css'
 })
 export class DiscussionsListComponent {
-  discussionList: Discussion[] = [];
 
+  protected discussionService : DiscussionService = inject(DiscussionService);
 
   constructor() {
-
-
+    this.discussionService.getDiscussions();
   }
 }
