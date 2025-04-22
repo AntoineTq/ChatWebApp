@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
 
-    List<Discussion> findAllByMembers_Id(Long userId);
+    List<Discussion> findAllByMembers_IdOrderByLastModifiedDesc(Long userId);
 }

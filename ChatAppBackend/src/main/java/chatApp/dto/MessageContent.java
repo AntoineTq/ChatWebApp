@@ -18,7 +18,7 @@ public class MessageContent {
         return date;
     }
 
-    public Long getDiscussion() {
+    public Long getDiscussionId() {
         return discussionId;
     }
 

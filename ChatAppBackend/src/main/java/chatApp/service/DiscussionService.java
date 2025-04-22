@@ -1,23 +1,24 @@
 package chatApp.service;
 
-import chatApp.dto.MessageContent;
-import chatApp.mapper.DiscussionMapper;
 import chatApp.dto.DiscussionDTO;
+import chatApp.dto.MessageContent;
+import chatApp.dto.MessageDTO;
+import chatApp.mapper.DiscussionMapper;
+import chatApp.mapper.MessageMapper;
 import chatApp.model.Discussion;
 import chatApp.model.Message;
-import chatApp.dto.MessageDTO;
-import chatApp.mapper.MessageMapper;
+import chatApp.model.Person;
 import chatApp.repository.DiscussionRepository;
 import chatApp.repository.MessageRepository;
-import chatApp.model.Person;
 import chatApp.repository.PersonRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Service
 public class DiscussionService {
@@ -25,11 +26,16 @@ public class DiscussionService {
     private final DiscussionRepository discussionRepository;
     private final MessageRepository messageRepository;
     private final PersonRepository personRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
-    public DiscussionService(DiscussionRepository discussionRepository, MessageRepository messageRepository, PersonRepository personRepository) {
+    public DiscussionService(DiscussionRepository discussionRepository,
+                             MessageRepository messageRepository,
+                             PersonRepository personRepository,
+                             SimpMessagingTemplate simpMessagingTemplate) {
         this.discussionRepository = discussionRepository;
         this.messageRepository = messageRepository;
         this.personRepository = personRepository;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
 
@@ -52,15 +58,34 @@ public class DiscussionService {
         discussionRepository.deleteById(discussionId);
     }
 
-    public MessageDTO sendMessage(MessageContent messageContent, Person sender) {
-        Discussion discussion = discussionRepository.findById(messageContent.getDiscussion()).orElseThrow();
-        Message newMessage = new Message(sender.getId(), LocalDateTime.now(), messageContent.getContent(), discussion);
+    @Transactional
+    public void sendMessage(MessageContent messageContent, String principalName) {
+        Discussion discussion = discussionRepository.findById(messageContent.getDiscussionId()).orElseThrow();
+        Person sender = personRepository.findById(Long.valueOf(principalName)).orElseThrow();
+        LocalDateTime messageDate = LocalDateTime.now();
+        List<Person> persons = discussion.getMembers();
+
+        discussion.setLastModified(messageDate);
+        discussionRepository.save(discussion);
+
+        Message newMessage = new Message(sender.getId(), messageDate, messageContent.getContent(), discussion);
         messageRepository.save(newMessage);
-        return MessageMapper.toDTO(newMessage);
+
+        MessageDTO messageDTO = MessageMapper.toDTO(newMessage);
+        for (Person person : persons){
+            System.out.println("sending to "+ person.getEmail());
+            simpMessagingTemplate.convertAndSendToUser(
+                    person.getId().toString(),
+                    "/queue/messages",
+                    messageDTO
+            );
+
+        }
+
     }
 
     public List<DiscussionDTO> getDiscussionsByUserId(Long id) {
-        List<Discussion> discussions = discussionRepository.findAllByMembers_Id(id);
+        List<Discussion> discussions = discussionRepository.findAllByMembers_IdOrderByLastModifiedDesc(id);
         if (discussions.isEmpty()){
             return null;
         }

@@ -4,6 +4,8 @@ import * as Stomp from 'stompjs';
 import {Message} from "../interfaces/message";
 import {AuthService} from "./auth.service";
 import {environment} from "../../../environments/environment";
+import {DiscussionService} from "./discussion.service";
+import {Discussion} from "../interfaces/discussion";
 
 @Injectable({
   providedIn: 'root'
@@ -11,10 +13,9 @@ import {environment} from "../../../environments/environment";
 export class WebsocketService {
   private stompClient: any;
   private socket: WebSocket | null = null;
-  private authService: AuthService = inject(AuthService);
   private apiUrl = environment.apiUrl;
 
-  constructor() {
+  constructor(private discussionService: DiscussionService, private authService:AuthService) {
     this.authService.hasMyJwt.subscribe( hasToken => {
       if (hasToken) {
         this.initWebSocket();
@@ -34,7 +35,11 @@ export class WebsocketService {
     this.stompClient.connect({
       Authorization: `Bearer ${token}`
     }, () => {
-      this.stompClient.subscribe('/topic/messages', (msg: any) => {
+      this.stompClient.subscribe(`/user/${this.authService.userId}/queue/messages`, (msg: any) => {
+
+        const message : Message = JSON.parse(msg.body);
+        console.log("received on socket :"+message);
+        this.handleMessage(message);
 
       });
     });
@@ -47,4 +52,18 @@ export class WebsocketService {
     this.stompClient.send('/app/message', {}, JSON.stringify(msg));
   }
 
+  private handleMessage(message: Message) {
+    if (!message) return;
+    this.discussionService.addNewMessage(message);
+
+    //TODO change this to handle active discussion + others like :
+    /*
+    if(this.activeDisc == message.discussionId){
+      this.discussionService.addNewMessage(message); // add msg to display
+    }else{
+      set the discussion at the top of the list to notify new msg
+    }
+     */
+
+  }
 }

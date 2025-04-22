@@ -57,11 +57,10 @@ export class DiscussionMessagesComponent {
     console.log(this.authService.userId)
     this.currentSub = this.route.params.subscribe(params => {
       this.discussionId = Number(params["id"]);
-      this.discussionService.getMessagesByDiscussionId(this.discussionId)
-        .subscribe(messages => {
-          console.log(messages);
-          this.messages = messages;
-        });
+      this.discussionService.getMessagesByDiscussionId(this.discussionId);
+      this.discussionService.activeDiscussionMessages.subscribe( value => {
+        this.messages = value;
+      })
     });
   }
 

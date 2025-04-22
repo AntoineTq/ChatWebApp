@@ -35,6 +35,14 @@ public class Discussion {
         this.id = id;
     }
 
+    public LocalDateTime getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(LocalDateTime lastModified) {
+        this.lastModified = lastModified;
+    }
+
     public List<Message> getMessages() {
         return messages;
     }

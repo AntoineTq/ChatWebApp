@@ -36,7 +36,7 @@ import {AuthService} from "../services/auth.service";
   styleUrl: './main-page.component.css'
 })
 export class MainPageComponent {
-
+  websocketService = inject(WebsocketService); // to load it with main page
   route: ActivatedRoute = inject(ActivatedRoute);
   isOpenedDiscussion = false;
 

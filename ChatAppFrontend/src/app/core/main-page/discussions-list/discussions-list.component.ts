@@ -27,6 +27,10 @@ export class DiscussionsListComponent {
   protected discussionService : DiscussionService = inject(DiscussionService);
 
   constructor() {
+    // this.discussionService.getDiscussions();
+  }
+
+  ngOnInit(){
     this.discussionService.getDiscussions();
   }
 }

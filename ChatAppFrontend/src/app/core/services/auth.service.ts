@@ -88,12 +88,10 @@ export class AuthService {
 
   private authenticateUser() {
     const token = this.getIdToken();
-    console.log(token)
     return this.http.post('http://localhost:8080/auth/login', {token})
       .subscribe((response: any) => {
         console.log("user connected and received myJWT");
         sessionStorage.setItem("myJWT", response.token);
-        console.log(response);
         this._userId = response.userId;
         this.hasMyJwtSubject.next(true);
         this.router.navigate(['/discussions']);
